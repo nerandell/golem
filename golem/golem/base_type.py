@@ -1,3 +1,3 @@
-class BaseType():
+class BaseType:
 
     _fields = [('created', int), ('updated', int)]
