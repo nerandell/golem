@@ -82,7 +82,7 @@ class Golem:
     @classmethod
     def generate(cls, entity, fields):
         element = Golem.generate_class(entity, fields)
-        store = cls._get_store(entity)
+        store = cls._get_store(element)
         return element, _TCPService(store), _HTTPService(store)
 
     @classmethod
@@ -91,4 +91,4 @@ class Golem:
 
     @staticmethod
     def _get_store(entity: BaseType.__class__):
-        return _Store(entity.__name__)
+        return _Store(entity)
