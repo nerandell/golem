@@ -1,6 +1,6 @@
 from asyncio import coroutine
 import logging
-from .types import Type
+from .base_type import BaseType
 from vyked.sql import PostgresStore
 from vyked.utils.log import log
 from vyked.services import TCPApplicationService, HTTPApplicationService
@@ -12,17 +12,17 @@ CREATED = 'created'
 class _Store(PostgresStore):
     _logger = logging.getLogger(__name__)
 
-    def __init__(self, table_name: str, entity: Type.__class__):
-        self._table_name = table_name
+    def __init__(self, entity):
+        self._table_name = entity.__name__
 
     @log(logger=_logger)
     @coroutine
-    def insert_ele(self, entity: Type):
+    def insert_ele(self, entity: BaseType):
         yield from self.insert(self._table_name, dict(vars(entity)))
 
     @log(logger=_logger)
     @coroutine
-    def update_ele(self, entity: Type):
+    def update_ele(self, entity: BaseType):
         yield from self.update(self._table_name, values=dict(vars(entity)),
                                where_keys=[{IDENTIFIER: ('=', getattr(entity, entity.id))}])
 
@@ -45,26 +45,23 @@ class _Service:
 
     @log(logger=_logger)
     @coroutine
-    def insert_ele(self, entity: Type):
-        yield from self._store.insert_ele(self._table_name, dict(vars(entity)))
+    def insert_ele(self, entity: BaseType):
+        pass
 
     @log(logger=_logger)
     @coroutine
-    def update_ele(self, entity: Type):
-        yield from self._store.update_ele(self._table_name, values=dict(vars(entity)),
-                                          where_keys=[{IDENTIFIER: ('=', getattr(entity, entity.id))}])
+    def update_ele(self, entity: BaseType):
+        pass
 
     @log(logger=_logger)
     @coroutine
     def get_ele(self, id):
-        return (
-            yield from self._store.get_ele(self._table_name, order_by=CREATED, where_keys=[{IDENTIFIER: ('=', id)}]))
+        pass
 
     @log(logger=_logger)
     @coroutine
     def delete_ele(self, id):
-        yield from self._store.delete_ele(self._table_name, where_keys=[{IDENTIFIER: ('=', id)}])
-
+        pass
 
 class _TCPService(TCPApplicationService, _Service):
     def __init__(self, store):
@@ -83,10 +80,15 @@ class Golem:
         pass
 
     @classmethod
-    def generate(cls, entity: Type.__class__, config: dict):
+    def generate(cls, entity, fields):
+        element = Golem.generate_class(entity, fields)
         store = cls._get_store(entity)
-        return _TCPService(store), _HTTPService(store)
+        return element, _TCPService(store), _HTTPService(store)
+
+    @classmethod
+    def generate_class(cls, name, fields):
+        return type(name, (BaseType,), {'_fields': fields + BaseType._fields})
 
     @staticmethod
-    def _get_store(entity: Type.__class__):
+    def _get_store(entity: BaseType.__class__):
         return _Store(entity.__name__)
