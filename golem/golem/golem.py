@@ -78,7 +78,7 @@ class _HTTPService(HTTPApplicationService):
         super(_HTTPService, self).__init__('FakeService', 1, '127.0.0.1', 4502)
 
 
-class Automator:
+class Golem:
     def __init__(self):
         pass
 

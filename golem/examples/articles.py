@@ -1,5 +1,5 @@
 from vyked import Bus
-from ..golem.golem import Automator
+from ..golem.golem import Golem
 from ..golem.types import Type
 
 REGISTRY_HOST = '127.0.0.1'
@@ -16,7 +16,7 @@ class Article(Type):
 
 if __name__ == '__main__':
     bus = Bus()
-    tcp_service, http_service = Automator.generate("Article", {'username': str, })
+    tcp_service, http_service = Golem.generate("Article", {'username': str, })
     tcp_service.ronin = True
     http_service.ronin = True
     bus.serve_tcp(tcp_service)
